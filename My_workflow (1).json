@@ -1,0 +1,164 @@
+{
+  "name": "My workflow",
+  "nodes": [
+    {
+      "parameters": {
+        "updates": [
+          "messages"
+        ],
+        "options": {
+          "messageStatusUpdates": [
+            "all"
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.whatsAppTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "4e8d6d29-1d50-4e8d-b391-7f65bb3285f0",
+      "name": "WhatsApp Trigger",
+      "webhookId": "eff930a5-79d5-4e9c-a4c3-ff2efe59deee",
+      "credentials": {
+        "whatsAppTriggerApi": {
+          "id": "diunE2U4YklCP6N2",
+          "name": "WhatsApp OAuth account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "{{ $json.entry[0].changes[0].value.messages[0].text.body }}\n",
+        "options": {
+          "systemMessage": "=You are a helpful assistant. Answer in a friendly, concise tone.\n"
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.9,
+      "position": [
+        220,
+        0
+      ],
+      "id": "4a3d4232-1213-47a4-b18a-82a90dd23149",
+      "name": "AI Agent"
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $json.entry[0].changes[0].value.contacts[0].wa_id || $json.entry[0].changes[0].value.messages[0].from }}\n"
+      },
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.3,
+      "position": [
+        360,
+        300
+      ],
+      "id": "1563769a-59fa-4225-bc93-e500b1f5d1aa",
+      "name": "Simple Memory"
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenRouter",
+      "typeVersion": 1,
+      "position": [
+        260,
+        220
+      ],
+      "id": "6466456b-abcc-4721-b345-5c8363109fe6",
+      "name": "OpenRouter Chat Model",
+      "credentials": {
+        "openRouterApi": {
+          "id": "Hn5tc03Vj6qC51wU",
+          "name": "OpenRouter account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "637399436123898",
+        "recipientPhoneNumber": "={{ $('WhatsApp Trigger').item.json.messages[0].from }}",
+        "textBody": "={{ $json.output }}",
+        "additionalFields": {}
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1,
+      "position": [
+        580,
+        0
+      ],
+      "id": "80b91098-935f-48d8-8651-f340566ef910",
+      "name": "WhatsApp Business Cloud",
+      "webhookId": "141704d2-9915-4c55-a403-620724977d10",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "IVrKg3O081kewGX2",
+          "name": "WhatsApp account 3"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "WhatsApp Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Simple Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp Business Cloud",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenRouter Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "21a994d8-55c5-4235-aba5-bd04028d9f1f",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "47182baff48fd6880677ab245b3d48a2986addb88fd79f380784a62022481591"
+  },
+  "id": "1amtUM4mPFBiCigD",
+  "tags": []
+}
